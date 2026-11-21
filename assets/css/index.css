@@ -1,411 +1,177 @@
 /* index.css — the landing page (index.html).
    =========================================================================
-   Loaded after tokens.css and shared.css. Top bar and sidebar, buttons, info boxes, code
-   blocks and status dots live in shared.css; what remains here is the
-   landing page's own furniture — heroes, card grids, key details, tables.
+   Loaded after tokens.css and shared.css. The shell, buttons, info boxes and
+   code blocks live in shared.css; what remains here is the landing page's
+   own furniture.
 
-   Every value resolves to a token in tokens.css. The one thing to know when
-   editing: F5DS pairs a fixed leading with each size, so any rule that sets
-   font-size must restate the paired --lh-*.
-
-   ── What changed visually, and why ────────────────────────────────────────
-   The heroes used to carry a diagonal gradient wash plus a tiled hexagon
-   watermark. Both are gone. The console has no hero art at all, and a gradient
-   was the strongest remaining marketing-page cue on the site; a flat tint band
-   keeps each section distinguishable while reading as a product surface. The
-   eyebrow badge and the hero's structure are kept — that part is this site's,
-   not the console's, and dropping it would have been a rebuild rather than a
-   restyle.
-
-   Cards used to rest on a shadow and strengthen on hover. They are now
-   border-only at rest, which is what the console does on its own landing
-   pages, reserving shadow for surfaces that genuinely float. There is still no
-   hover lift: F5DS's `Elevate Up` is a Motion-page catalogue entry rather than
-   a mandate, and a page of cards rising at once is a lot of motion for a
-   documentation site.
-   ========================================================================= */
-
-/* ── Sidebar accent rails ─────────────────────────────────────────────────
-   The hidden .dot spans carry each item's product colour; the active item's
-   left rail (shared.css ::before, green by default) picks it up via :has().
-   Green and blue are the only two colours the markup carries. The teal and
-   red rails, like every .blogs/.videos rule below, belonged to blog and video
-   sections that are no longer in the page; `git log -S'page-hero videos'`
-   has them. */
-.sidebar-link.active:has(.dot[data-color="blue"])::before { background: var(--blue); }
-
-/* Matching text colour, so the active item's rail and label agree. */
-.sidebar-link.active:has(.dot[data-color="blue"]) { color: var(--blue-text); }
-/* Same specificity as the blue rail above, so forced colours need the same
-   override shared.css gives the green one. */
-@media (forced-colors: active) {
-    .sidebar-link.active:has(.dot[data-color="blue"])::before { forced-color-adjust: none; background: Highlight; }
-}
+   DESIGN PREVIEW in the look of nginx.org, whose home page is a title, a
+   justified paragraph, a "Latest News" list and an "Other NGINX Projects"
+   list of logo, bold name, a sentence and plain links. So: no hero band, no
+   tint, no lattice and no card chrome. A page opens on its H1 the way
+   nginx.org's does, project cards read as nginx.org's project entries, and
+   the key-details block takes the look of nginx.org's directive box
+   (div.directive: #F2F2F2 with a 2px #DDD rule on top). */
 
 
 /* ── Product page ─────────────────────────────────────────────────────────
    Inactive pages carry the hidden attribute (markup + index.js), so
    find-in-page searches only the active one. */
 
-.page-hero {
-    position: relative;
-    overflow: hidden;          /* the pattern layer must not escape the section */
-    padding: var(--space-6x) var(--space-6x) var(--space-5x);
-    background: var(--surface);
-}
-/* A flat tint per section. Each is a 10–16% wash of the section's own hue over
-   the surface, which is enough to tell the pages apart without reading as
-   decoration. The edges are softened by ::after below rather than by making
-   these gradients, so the hue stays a single token per section. */
-.page-hero.home,
-.page-hero.nic,
-.page-hero.ngf       { background: var(--green-tint); }
-.page-hero.migration,
-.page-hero.i2g,
-.page-hero.lens      { background: var(--blue-tint); }
+.product-page { display: block; }
+.product-page[hidden] { display: none; }
+.page-hero { padding: 0 0 var(--space-2x); }
+.page-hero-content { max-width: none; }
 
-/* Every soft edge, in one overlay. Two layers of the page background painted
-   back over the tint: downward, so the band dissolves into the page instead of
-   ending on a border; and rightward from the navigation, so the tint ramps up
-   out of the sidebar rather than starting at full strength against it. It
-   covers the whole hero (inset: 0, not bottom-only) because the left wash needs
-   the full height. z-index 1 puts it above ::before — so the lattice fades with
-   the colour rather than staying crisp over a fading band — and below
-   .page-hero-content at z-index 2, which is what keeps it off the CTA. */
-.page-hero::after {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    z-index: 1;
-    background: linear-gradient(to bottom, transparent 72%, var(--bg) 100%),
-                linear-gradient(to right, var(--bg) 0, transparent 22%);
-}
-
-.page-hero-content { position: relative; z-index: 2; max-width: 900px; }
-
-/* ── The hexagon lattice — the landing hero, and nowhere else ─────────────
-   Carried over from the pre-F5DS design, where it was the page's strongest
-   NGINX signal. F5DS has no background-texture class (see the deviations table
-   in CLAUDE.md), so this is a deliberate departure, confined to the front door:
-   the section heroes below get the same edge treatment without the motif, which
-   keeps the reference pages quiet.
-
-   Two intersecting masks. The horizontal one concentrates the lattice on the
-   right, where the hero is empty, and clears it from behind the headline and
-   CTA — so no text ever sits on texture and no contrast pairing changes. The
-   vertical one feathers the top and bottom. Together they mean the tile has no
-   hard edge on any side; the right simply runs off the viewport. */
-.page-hero.home::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: var(--pattern-hex);
-    -webkit-mask-image: linear-gradient(to right, transparent 0, transparent 26%, #000 78%),
-                        linear-gradient(to bottom, transparent 0, #000 16%, #000 64%, transparent 100%);
-            mask-image: linear-gradient(to right, transparent 0, transparent 26%, #000 78%),
-                        linear-gradient(to bottom, transparent 0, #000 16%, #000 64%, transparent 100%);
-    -webkit-mask-composite: source-in;
-            mask-composite: intersect;
-}
-/* Non-negotiable: at full strength the white strokes cut straight through the
-   headline on a dark page. The pre-F5DS design clamped to 0.04; the mask here
-   already removes the lattice from behind the copy, so it tolerates more. */
-:is(html, body).dark-mode .page-hero.home::before { opacity: 0.10; }
-
-/* ── Section heroes: the same diagonal, carried without the motif ─────────
-   A light wash on the same 105deg angle as the landing lattice, so the two tie
-   together as one system rather than the home page looking unrelated. Their
-   bottom dissolve also starts higher than the landing hero's, because these
-   heroes are shorter and a late start leaves a visible band edge. */
-.page-hero.nic::before,
-.page-hero.ngf::before,
-.page-hero.migration::before,
-.page-hero.i2g::before,
-.page-hero.lens::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    pointer-events: none;
-    background: linear-gradient(105deg, transparent 20%, var(--hero-wash) 62%, transparent 100%);
-}
-.page-hero.nic::after,
-.page-hero.ngf::after,
-.page-hero.migration::after,
-.page-hero.i2g::after,
-.page-hero.lens::after {
-    background: linear-gradient(to bottom, transparent 60%, var(--bg) 100%),
-                linear-gradient(to right, var(--bg) 0, transparent 22%);
-}
-
-/* Hero eyebrow. Labelled typographically rather than with a container — a
-   filled capsule is off-idiom, and the pill radius is reserved for tags and
-   badges. Every eyebrow carries its section hue; it is the page's first colour
-   cue, ahead of the CTA and the sidebar rail. */
+/* The eyebrow becomes a plain grey line over the title. */
 .page-hero-badge {
     display: inline-flex;
     align-items: center;
     gap: var(--space-base);
-    font-family: var(--font-display);
+    margin-bottom: var(--space-base);
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
-    font-weight: 700;
-    color: var(--text);
-    padding-bottom: var(--space-base);
-    margin-bottom: var(--space-2x);
-    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
 }
-.page-hero-badge.nic,
-.page-hero-badge.ngf       { color: var(--green-deep); }
-.page-hero-badge.migration,
-.page-hero-badge.i2g,
-.page-hero-badge.lens      { color: var(--blue-text); }
-:is(html, body).dark-mode .page-hero-badge.nic,
-:is(html, body).dark-mode .page-hero-badge.ngf { color: var(--green-text); }
-
-/* The version chip beside the eyebrow. Pill radius is legitimate: F5DS permits
-   it for Tags and Badges, which this is. */
+.page-hero-badge svg { display: none; }
 .hero-version {
-    display: inline-block;
-    margin-left: var(--space-small);
-    padding: 0 var(--space-base);
-    border-radius: var(--radius-pill);
-    background: var(--surface);
-    border: 1px solid var(--border);
     font-family: var(--mono);
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
-    font-weight: 500;
-    color: inherit;
-    text-decoration: none;
-    transition: border-color var(--dur-colour) linear;
 }
-.hero-version:hover { border-color: currentColor; text-decoration: underline; }
+.hero-version:link { color: var(--link); }
+.hero-version:visited { color: var(--link-visited); }
 
+/* nginx.org's h1: 3em, bold, left. */
 .page-hero h1 {
-    font-family: var(--font-display);
     font-size: var(--fs-h1);
     line-height: var(--lh-h1);
     font-weight: 700;
-    margin-bottom: var(--space-base);
+    margin-bottom: var(--space-2x);
 }
-/* Full body colour, not --text-secondary. The secondary grey is tuned for the
-   N0 and N100 surfaces; on these hero tints it measured 4.09–4.14:1 in light,
-   on all five views. --text is 13.0:1 on both tints, and in dark it is the
-   same N100 the hero's other text already uses. The 16px size and the h1
-   above it keep the subtitle reading as subordinate. */
+/* Justified, as every nginx.org paragraph. */
+.page-hero p, .page-body p { text-align: justify; }
 .page-hero p {
-    font-size: var(--fs-body-lg);
-    line-height: var(--lh-body-lg);
-    color: var(--text);
-}
-.hero-cta-row { margin-top: var(--space-3x); }
-/* The landing page's one statement that the community controller is retired;
-   the migration tool opens with the full warning. Plain text, not a warning
-   box: on the front door it is context for the CTA above it, not an alert. */
-.page-hero p.hero-status {
-    margin-top: var(--space-2x);
     font-size: var(--fs-body);
     line-height: var(--lh-body);
 }
-.page-hero .hero-status a:link,
-.page-hero .hero-status a:visited { color: var(--blue-text); }
-.page-hero .hero-status a:hover { color: var(--blue-deep); }
-.coming-soon-label { font-weight: 500; color: var(--text-secondary); }
+.hero-cta-row { margin-top: var(--space-2x); }
+.page-hero p.hero-status { margin-top: var(--space-2x); }
+.coming-soon-label { color: var(--text-secondary); }
 
-.page-body { padding: var(--space-5x) var(--space-6x) var(--space-8x); max-width: 1140px; }
-
-/* The product and tool pages open with a CTA row, and three spacing values were
-   stacking under the hero: its 40px bottom padding, this block's 40px top
-   padding, and .cta-row's own 32px top margin — 113px measured. That margin is
-   meant to separate a CTA row from content above it inside the body; as the
-   first child there is no content above it, only padding, so it double-counted.
-   Zeroing it and easing the top padding brings the row to 64px under the hero. */
+.page-body { padding: 0; }
 .page-body > .cta-row:first-child { margin-top: 0; }
-.page-body:has(> .cta-row:first-child) { padding-top: var(--space-3x); }
-/* Content-area link colour, scoped so it cannot override the top bar or sidebar. Card
-   anchors are excluded so they keep `inherit`. */
-.page-body a:link:not(.cta):not(.feature-card):not(.project-card) { color: var(--blue-text); }
-.page-body a:visited:not(.cta):not(.feature-card):not(.project-card) { color: var(--blue-text); }
-.page-body a:hover:not(.cta):not(.feature-card):not(.project-card) { color: var(--blue-deep); }
+
+/* Content links: blue and underlined, visited purple. Scoped to the content
+   so they never reach the menu; the card anchors are excluded because a card
+   is not underlined as a whole. */
+.page-hero a:link:not(.cta), .page-body a:link:not(.cta):not(.feature-card):not(.project-card) { color: var(--link); text-decoration: underline; }
+.page-hero a:visited:not(.cta), .page-body a:visited:not(.cta):not(.feature-card):not(.project-card) { color: var(--link-visited); }
 
 
-/* ── Section headings ─────────────────────────────────────────────────────── */
-
+/* ── Section headings ─────────────────────────────────────────────────────
+   nginx.org's h2: 2rem on 2.25rem, bold, 1rem above and .5rem below. */
 .section-heading {
-    font-family: var(--font-display);
     font-size: var(--fs-h2);
     line-height: var(--lh-h2);
     font-weight: 700;
     margin-top: var(--space-5x);
     margin-bottom: var(--space-2x);
-    padding-bottom: var(--space-base);
-    border-bottom: 1px solid var(--border);
 }
 .section-heading:first-child { margin-top: 0; }
-.section-heading-plain { border: none; padding-bottom: 0; }
+.section-heading-plain { margin-top: 0; }
 
 
-/* ── Card grids ───────────────────────────────────────────────────────────
-   16px gutter is F5DS's published grid gutter. 20px card padding is its
-   "between page content or panels" step, which is what the console's own
-   annotated cards measure. */
-
-/* Two per row, not auto-fill. Auto-fill gave three columns on a wide viewport,
-   which left the fourth card alone on its own row — both of these grids hold
-   four items, so a 2x2 block reads far better than 3+1. */
+/* ── Project and feature lists ────────────────────────────────────────────
+   nginx.org's "Other NGINX Projects": each entry a bold name that is the
+   link, a sentence, and the next entry below a blank line. Two columns on a
+   wide screen keep the list short, the way nginx.org's own entries sit
+   beside their logos. */
 .feature-grid, .project-grid {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-2x);
-    margin: var(--space-2hx) 0 var(--space-4x);
+    gap: var(--space-3x) var(--space-5x);
+    margin: var(--space-2x) 0 var(--space-4x);
 }
 
-.feature-card, .project-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--space-2hx);
-    transition: border-color var(--dur-colour) linear,
-                box-shadow var(--dur-elev) linear;
-}
-.feature-card:hover, .project-card:hover {
-    border-color: var(--border-control);
-    box-shadow: var(--elev-1);
-}
-
-.feature-card .feature-title {
-    display: flex;
-    align-items: center;
-    gap: var(--space-base);
-    font-family: var(--font-display);
-    font-size: var(--fs-body-lg);
-    line-height: var(--lh-body-lg);
-    font-weight: 500;
-    margin-bottom: var(--space-base);
-}
-.feature-card .feature-title svg { flex-shrink: 0; color: var(--green-text); }
-.feature-card p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-secondary); }
-
-/* Variant: card whose first child is media and whose content sits in a body
-   block below it. */
-.feature-card-flush { padding: 0; overflow: hidden; }
-.feature-card-flush .video-embed { margin: 0; border-radius: var(--radius) var(--radius) 0 0; }
-.feature-card-flush > .feature-card-body { padding: var(--space-2x); }
-/* Featured video and blog cards. The content's own title is the card's <h3>,
-   and "Featured video" / "Featured blog" is a label above it. They used to be
-   the other way round: four headings all saying "Featured …" while the title a
-   reader would scan for sat in a paragraph. The type is unchanged — both are
-   still 16px Medium; only the label takes the secondary colour. */
-.feature-card-flush .feature-card-eyebrow {
-    font-family: var(--font-display);
-    font-size: var(--fs-body-lg);
-    line-height: var(--lh-body-lg);
-    font-weight: 500;
-    margin-bottom: var(--space-base);
-}
-.feature-card-flush p.feature-title { color: var(--text-secondary); }
-a.feature-card, a.feature-card:link, a.feature-card:visited { text-decoration: none; color: inherit; }
-.feature-card-thumb { width: 100%; aspect-ratio: 16/9; object-fit: cover; display: block; }
-.feature-card-cta {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-small);
-    margin-top: var(--space-2x);
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    font-weight: 500;
-    color: var(--blue-text);
-}
-
-.project-card { display: block; text-align: left; text-decoration: none; color: inherit; }
-.project-card:link, .project-card:visited { color: inherit; }
-/* Category eyebrow: typographic rather than a filled capsule, for the same
-   reason as the hero eyebrow. */
+.project-card { display: block; text-decoration: none; }
+.project-card:link, .project-card:visited { color: var(--text); }
 .project-card-badge {
     display: block;
-    font-family: var(--font-display);
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
-    font-weight: 700;
-    padding-bottom: var(--space-base);
-    margin-bottom: var(--space-base);
-    border-bottom: 1px solid var(--border);
+    color: var(--text-secondary);
 }
-.project-card-badge.green { color: var(--green-text); }
-.project-card-badge.blue  { color: var(--blue-text); }
 .project-card h3 {
-    font-family: var(--font-display);
     font-size: var(--fs-body-lg);
     line-height: var(--lh-body-lg);
-    font-weight: 500;
+    font-weight: 700;
+    color: var(--link);
+    text-decoration: underline;
+}
+.project-card:visited h3 { color: var(--link-visited); }
+.project-card p { margin-top: var(--space-small); text-align: left; }
+.project-card .card-fit { color: var(--text-secondary); font-style: italic; }
+/* "Learn more" repeats the title link, which is already underlined. */
+.project-card .card-link { display: none; }
+
+.feature-card .feature-title {
+    display: block;
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    font-weight: 700;
+    margin-bottom: var(--space-small);
+}
+.feature-card .feature-title svg { display: none; }
+.feature-card p { text-align: left; }
+
+/* Featured video and blog: the media above, then the name and a line. */
+.feature-card-flush { display: block; text-decoration: none; }
+.feature-card-flush:link, .feature-card-flush:visited { color: var(--text); }
+.feature-card-flush .video-embed { margin: 0 0 var(--space-base); }
+.feature-card-body { display: block; }
+.feature-card-thumb {
+    display: block;
+    width: 100%;
+    aspect-ratio: 16/9;
+    object-fit: cover;
     margin-bottom: var(--space-base);
 }
-.project-card p { font-size: var(--fs-body); line-height: var(--lh-body); color: var(--text-secondary); }
-.project-card .card-link {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-small);
-    margin-top: var(--space-2x);
+.feature-card-flush p.feature-title {
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
-    font-weight: 500;
-    color: var(--blue-text);
+    font-weight: 400;
+    color: var(--text-secondary);
 }
-.project-card .card-link.blue { color: var(--blue-text); }
-.project-card .card-fit {
-    margin-top: var(--space-base);
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    font-weight: 500;
-    color: var(--green-text);
+.feature-card-flush .feature-card-eyebrow {
+    font-size: var(--fs-body-lg);
+    line-height: var(--lh-body-lg);
+    font-weight: 700;
+    margin: var(--space-xsmall) 0 var(--space-small);
 }
+a.feature-card-flush .feature-card-eyebrow { color: var(--link); text-decoration: underline; }
+a.feature-card-flush:visited .feature-card-eyebrow { color: var(--link-visited); }
+.feature-card-cta { display: none; }
 
 
-/* ── Code section ─────────────────────────────────────────────────────────
-   The block itself, its syntax tokens and the copy button are in shared.css. */
-.code-section { margin: var(--space-3hx) 0; }
+/* ── Code section ─────────────────────────────────────────────────────────── */
+.code-section { margin: var(--space-4x) 0 0; }
 .code-section-flush { margin-top: 0; }
-.code-section h2 {
-    font-size: var(--fs-body-lg);
-    line-height: var(--lh-body-lg);
-    font-weight: 500;
-    margin-bottom: var(--space-base);
-}
 .code-block + .code-block { margin-top: var(--space-2x); }
 .code-accent { background: var(--blue-tint); color: var(--on-blue-tint); }
 
 
 /* ── CTAs ─────────────────────────────────────────────────────────────────
-   Geometry and the primary/secondary variants live in shared.css. What remains
-   here is the per-section colour: each page leads with its own hue, so the
-   primary fill is overridden per section. The hero CTAs take M-40 as their most
-   prominent action; F5DS says use that size sparingly. */
-.cta-row { margin-top: var(--space-4x); }
-.cta-primary.nic, .cta-primary.ngf { background: var(--green-text); border-color: var(--green-text); }
-.cta-primary.nic:hover, .cta-primary.ngf:hover { background: var(--green-deep); border-color: var(--green-deep); }
-.cta-primary.migration, .cta-primary.i2g, .cta-primary.lens { background: var(--blue-text); border-color: var(--blue-text); color: var(--n0); }
-.cta-primary.migration:hover, .cta-primary.i2g:hover, .cta-primary.lens:hover { background: var(--blue-deep); border-color: var(--blue-deep); }
-
-:is(html, body).dark-mode .cta-primary.nic,
-:is(html, body).dark-mode .cta-primary.ngf { background: var(--green); border-color: var(--green); color: var(--n700); }
-:is(html, body).dark-mode .cta-primary.migration,
-:is(html, body).dark-mode .cta-primary.i2g,
-:is(html, body).dark-mode .cta-primary.lens { background: var(--blue); border-color: var(--blue); color: var(--n700); }
+   One look for every section: nginx.org has no colour per section. */
+.cta-row { margin-top: var(--space-2x); }
 
 
-/* ── Product screenshot ───────────────────────────────────────────────────
-   A tool that is a UI gets one capture under its CTAs. Border-only like the
-   cards, on --radius. The capture is taken in the tool's own light and dark
-   themes and swapped with the site's dark-mode class, so a dark page never
-   shows a bright screenshot; the dark copy has empty alt, as only one shows. */
+/* ── Product screenshot ───────────────────────────────────────────────────── */
 .product-shot { margin: var(--space-3x) 0 var(--space-4x); }
 .product-shot img {
     display: block;
     width: 100%;
     height: auto;
     border: 1px solid var(--border);
-    border-radius: var(--radius);
 }
 .product-shot img.product-shot-dark { display: none; }
 :is(html, body).dark-mode .product-shot img.product-shot-light { display: none; }
@@ -418,99 +184,54 @@ a.feature-card, a.feature-card:link, a.feature-card:visited { text-decoration: n
 }
 
 
-/* ── Key details ──────────────────────────────────────────────────────────── */
+/* ── Key details: nginx.org's directive box ───────────────────────────────── */
 
 .key-details {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--space-2hx);
-    margin: var(--space-3hx) 0;
+    margin: var(--space-4x) 0;
+    padding: var(--space-2x);
+    background: var(--surface-sunken);
+    border-top: 2px solid var(--border);
 }
-.key-details h2 {
-    font-size: var(--fs-body-lg);
-    line-height: var(--lh-body-lg);
-    font-weight: 500;
-    margin-bottom: var(--space-2x);
-}
+.key-details h2 { margin-bottom: var(--space-2x); }
 .details-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-    gap: var(--space-3x);
+    gap: var(--space-2x) var(--space-3x);
 }
-.detail-item { display: flex; flex-direction: column; gap: var(--space-base); }
-.detail-label {
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    font-weight: 700;
-    color: var(--text-secondary);
-}
-.detail-tags { display: flex; flex-wrap: wrap; gap: var(--space-base); }
-.detail-tag {
-    display: inline-block;
-    padding: var(--space-small) var(--space-base);
-    border-radius: var(--radius);
-    background: var(--surface-sunken);
-    border: 1px solid var(--border);
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    transition: border-color var(--dur-colour) linear;
-}
-.detail-tag:hover { border-color: var(--border-control); }
-.detail-tag a { color: inherit; text-decoration: underline; text-decoration-color: var(--border-strong); text-underline-offset: 2px; }
-.detail-tag a:hover { text-decoration-color: currentColor; }
-
-/* A version. Pill radius is legitimate — Tags and Badges are F5DS's own
-   exception — and mono sets it apart as a value rather than prose. */
+.detail-item { display: flex; flex-direction: column; gap: var(--space-small); }
+.detail-label { color: var(--text-secondary); }
+.detail-tags { display: flex; flex-wrap: wrap; gap: var(--space-small) var(--space-2x); }
+.detail-tag { font-size: var(--fs-body); line-height: var(--lh-body); }
 .version-pill {
-    display: inline-block;
     align-self: flex-start;
-    padding: var(--space-small) var(--space-base);
-    border-radius: var(--radius-pill);
     font-family: var(--mono);
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    font-weight: 500;
-}
-.version-pill a { color: inherit; text-decoration: none; }
-.version-pill a:hover { text-decoration: underline; }
-.version-pill.nic, .version-pill.ngf { background: var(--green-tint); color: var(--green-deep); }
-:is(html, body).dark-mode .version-pill.nic,
-:is(html, body).dark-mode .version-pill.ngf { color: var(--green-text); }
-
-
-/* ── Compatibility table ──────────────────────────────────────────────────
-   F5DS publishes no table component, so the cell padding here is inferred
-   from the console's own screens. The Caption Bold column header is spec. */
-.compat-table { width: 100%; border-collapse: collapse; margin: var(--space-2x) 0; }
-.compat-table th, .compat-table td {
-    padding: var(--space-base) var(--space-2x);
-    text-align: left;
-    border-bottom: 1px solid var(--border);
     font-size: var(--fs-body);
     line-height: var(--lh-body);
 }
-.compat-table th {
-    font-size: var(--fs-caption);
-    line-height: var(--lh-caption);
-    font-weight: 700;
-    color: var(--text-secondary);
-    background: var(--surface-sunken);
+
+
+/* ── Compatibility table ──────────────────────────────────────────────────
+   nginx.org's news table: plain rows, a left-aligned header, no fill. */
+.compat-table { width: 100%; border-collapse: collapse; margin: var(--space-2x) 0; }
+.compat-table th, .compat-table td {
+    padding: var(--space-small) var(--space-2x) var(--space-small) 0;
+    text-align: left;
+    vertical-align: baseline;
+    font-size: var(--fs-body);
+    line-height: var(--lh-body);
 }
-.compat-table td:first-child { font-weight: 500; }
+.compat-table th { font-weight: 700; border-bottom: 1px solid var(--border); }
 
 
 /* ── Annotation grid (ingress2gateway) ────────────────────────────────────
-   Dormant by design: built for the ingress2gateway page's annotation table and
-   currently unreferenced in markup. Keep. */
+   Dormant by design: built for the ingress2gateway page's annotation table
+   and currently unreferenced in markup. Keep. */
 .annotation-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 1px;
     background: var(--border);
     border: 1px solid var(--border);
-    border-radius: var(--radius);
-    overflow: hidden;
     margin: var(--space-2x) 0;
 }
 .annotation-grid-header {
@@ -519,7 +240,6 @@ a.feature-card, a.feature-card:link, a.feature-card:visited { text-decoration: n
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
     font-weight: 700;
-    color: var(--text-secondary);
 }
 .annotation-grid-cell {
     padding: var(--space-base) var(--space-2x);
@@ -532,129 +252,71 @@ a.feature-card, a.feature-card:link, a.feature-card:visited { text-decoration: n
 .annotation-grid-cell.desc { font-family: var(--font); color: var(--text-secondary); word-break: normal; }
 
 
-/* ── Preview card (migration tool teaser) ─────────────────────────────────── */
-
-.preview-card {
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: var(--radius);
-    padding: var(--space-3x);
-    margin: var(--space-2hx) 0;
-    text-align: center;
-}
-.preview-card p {
-    font-size: var(--fs-body);
-    line-height: var(--lh-body);
-    color: var(--text-secondary);
-    margin-bottom: var(--space-2x);
-}
-.preview-stats { display: flex; justify-content: center; flex-wrap: wrap; gap: var(--space-4x); }
-.preview-stat { text-align: center; }
+/* ── Preview card (migration tool teaser) ─────────────────────────────────
+   A row of figures, as plain as nginx.org's download table. */
+.preview-card { margin: var(--space-3x) 0; }
+.preview-card p { margin-bottom: var(--space-2x); }
+.preview-stats { display: flex; flex-wrap: wrap; gap: var(--space-2x) var(--space-5x); }
 .preview-stat .num {
     display: block;
-    font-family: var(--font-display);
     font-size: var(--fs-h2);
     line-height: var(--lh-h2);
     font-weight: 700;
 }
-.preview-stat .num.migration { color: var(--blue-text); }
 .preview-stat .label {
     font-size: var(--fs-caption);
     line-height: var(--lh-caption);
-    font-weight: 500;
     color: var(--text-secondary);
 }
 
 
-/* ── Video embed ──────────────────────────────────────────────────────────── */
-
+/* ── Video embed ──────────────────────────────────────────────────────────
+   nginx.org's .video: 16:9 by padding. */
 .video-embed {
     position: relative;
     width: 100%;
     padding-bottom: 56.25%;
-    border-radius: var(--radius);
     overflow: hidden;
-    margin: var(--space-2hx) 0 var(--space-4x);
     background: var(--n700);
 }
 .video-embed iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; border: 0; }
-/* Click-to-load poster: avoids the full iframe payload until requested. */
 .video-poster { cursor: pointer; }
 .video-poster-img {
     position: absolute; top: 0; left: 0;
     width: 100%; height: 100%;
     object-fit: cover;
-    transition: filter var(--dur-colour) linear;
 }
-.video-poster:hover .video-poster-img { filter: brightness(0.85); }
 .video-poster-play {
     position: absolute; top: 50%; left: 50%;
     transform: translate(-50%, -50%);
     pointer-events: none;
-    opacity: 0.92;
-    transition: opacity var(--dur-colour) linear;
 }
-.video-poster:hover .video-poster-play { opacity: 1; }
 
 
 /* ── Entrance animation ───────────────────────────────────────────────────
-   F5DS's Fade In, with the 8px travel its Move In pairs with. */
-.animate-in { opacity: 0; transform: translateY(8px); }
-.animate-in.visible {
-    opacity: 1;
-    transform: translateY(0);
-    transition: opacity var(--dur-move) var(--ease-enter),
-                transform var(--dur-move) var(--ease-enter);
-}
-/* An inactive page must render its entrance items fully visible so they snap in
-   immediately when activated, whatever animate-in state was left behind. */
-.product-page:not(.active) .animate-in { opacity: 1; transform: none; transition: none; }
-
-.svg-sprite { display: none; }
-
-@media (prefers-reduced-motion: reduce) {
-    .animate-in { opacity: 1; transform: none; }
-}
+   nginx.org does not animate; index.js still adds the classes, so they are
+   kept inert. */
+.animate-in, .animate-in.visible { opacity: 1; transform: none; }
 
 
 /* ── Responsive ───────────────────────────────────────────────────────────── */
 
 @media (max-width: 900px) {
-    .page-hero { padding: var(--space-4x) var(--space-3x) var(--space-3x); }
-    .page-hero h1 { font-size: var(--fs-h2); line-height: var(--lh-h2); }
-    .page-body { padding: var(--space-3hx) var(--space-3x) var(--space-5x); }
-    .feature-grid, .project-grid { grid-template-columns: 1fr; }
-    .details-grid, .annotation-grid { grid-template-columns: 1fr; }
+    .feature-grid, .project-grid, .details-grid, .annotation-grid { grid-template-columns: 1fr; }
     .annotation-grid-header:nth-child(2) { display: none; }
+    /* Justified text opens wide gaps in a narrow column. */
+    .page-hero p, .page-body p { text-align: left; }
 }
 
 @media (max-width: 600px) {
-    .page-hero { padding: var(--space-3x) var(--space-2x) var(--space-2hx); }
-    .page-hero h1 { font-size: var(--fs-h3); line-height: var(--lh-h3); }
-    .page-hero p { font-size: var(--fs-body); line-height: var(--lh-body); }
-    .page-body { padding: var(--space-2hx) var(--space-2x) var(--space-4x); }
-    /* No room for the lattice on a phone: the hero is short and full-bleed, so
-       the mask has no empty right-hand region to occupy and the tile would run
-       straight under the copy. The edge washes stay — they are what removes the
-       band edge, which matters more at this width, not less. */
-    .page-hero.home::before { display: none; }
-    .cta-row { flex-direction: column; }
-    .cta { justify-content: center; width: 100%; }
-    .preview-stats { gap: var(--space-2hx); }
+    .page-hero h1 { font-size: var(--fs-h2); line-height: var(--lh-h2); }
+    .section-heading { font-size: var(--fs-h3); line-height: var(--lh-h3); }
+    .cta-row { flex-direction: column; align-items: stretch; }
+    .cta { justify-content: center; white-space: normal; text-align: center; }
 }
 
 
-/* ── Print ────────────────────────────────────────────────────────────────
-   Hiding the top bar and sidebar, and the dark-token reset, live in shared.css. */
+/* ── Print ────────────────────────────────────────────────────────────────── */
 @media print {
-    .page-hero { background: var(--n0) !important; }
-    /* The rule above only resets the element's own background; both decorative
-       layers are separate boxes and would otherwise print. */
-    .page-hero::before,
-    .page-hero::after { display: none !important; }
-    .code-block { background: var(--n100) !important; border-color: var(--n300); color-scheme: light; }
-    .code-block code,
-    .code-block .cmd, .code-block .flag,
-    .code-block .comment, .code-block .str { color: var(--n700) !important; }
     .feature-card, .project-card, .key-details, .preview-card { break-inside: avoid; }
 }

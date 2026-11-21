@@ -265,10 +265,16 @@ def check_load_order():
 
         # 2. The @font-face lives inside shared.css, so without a preload ahead
         #    of the stylesheets the font is not discoverable until that CSS has
-        #    parsed. Compare byte offsets, not tag order in a list.
+        #    parsed. Compare byte offsets, not tag order in a list. A design
+        #    preview set in system fonts has no @font-face, and a preload there
+        #    would fetch a file nothing uses, so the rule follows shared.css.
         preload = re.search(r'<link[^>]+rel="preload"[^>]+as="font"[^>]*>', text)
         first_sheet = re.search(r'<link[^>]+rel="stylesheet"', text)
-        if not preload:
+        webfont = '@font-face' in strip_comments(read('assets/css/shared.css'))
+        if not webfont:
+            if preload:
+                failures.append(f'{page}: preloads a font, but shared.css declares no @font-face')
+        elif not preload:
             failures.append(f'{page}: no <link rel="preload" as="font"> — the @font-face in '
                             'shared.css is not discoverable until that CSS parses')
         elif not first_sheet or preload.start() > first_sheet.start():
